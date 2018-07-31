@@ -20,33 +20,33 @@ import itertools
 
 import nltk
 from nltk.classify import MaxentClassifier, accuracy
-nltk.config_megam("megam-64.opt")
+nltk.config_megam("./megam-64.opt")
 
 class ClassifierTraining():
     def __init__(self, ftrain, fdev, language):
-        print language
-        print 'PARSING'
+        print(language)
+        print('PARSING')
         trainset = json.load(open(ftrain))
         devset = json.load(open(fdev))
 
-        print 'EXTRACTING'
+        print('EXTRACTING')
         self.train_c1_features, self.train_c2_features = self.extract_features(trainset)
         self.dev_c1_features, self.dev_c2_features = self.extract_features(devset)
 
-        print 'TRAINING'
+        print('TRAINING')
         self.train_c1_features = map(lambda x: (x['features'], x['class']), self.train_c1_features)
         self.clf_step1 = MaxentClassifier.train(self.train_c1_features, 'megam', trace=0, max_iter=1000)
 
         self.train_c2_features = map(lambda x: (x['features'], x['class']), self.train_c2_features)
         self.clf_sort_step = MaxentClassifier.train(self.train_c2_features, 'megam', trace=0, max_iter=1000)
 
-        print 'DUMPING'
+        print('DUMPING')
         if not os.path.exists('data/models'):
             os.mkdir('data/models')
         p.dump(self.clf_step1, open('data/models/' + language + '_clf_step1.cPickle', 'w'))
         p.dump(self.clf_sort_step, open('data/models/' + language + '_clf_step2.cPickle', 'w'))
 
-        print 'EVALUATING'
+        print('EVALUATING')
         self.evaluate()
 
     def extract_features(self, lngset):
@@ -176,12 +176,12 @@ class ClassifierTraining():
 
     def evaluate(self):
         dev_c1_features = map(lambda x: (x['features'], x['class']), self.dev_c1_features)
-        print language
-        print 'One-step: ', accuracy(self.clf_step1, dev_c1_features)
+        print(language)
+        print('One-step: ', accuracy(self.clf_step1, dev_c1_features))
 
         dev_c2_features = map(lambda x: (x['features'], x['class']), self.dev_c2_features)
-        print 'Two-step: ', accuracy(self.clf_sort_step, dev_c2_features)
-        print 20 * '-'
+        print('Two-step: ', accuracy(self.clf_sort_step, dev_c2_features))
+        print(20 * '-')
 
 class Order():
     def __init__(self, clf_step1, clf_sort_step):
@@ -225,7 +225,7 @@ class Order():
                 after.append(node)
 
         # treat nodes before
-        before = self.sort_step(before, 'before')
+        before = self.sort_stepV2(before, 'before')
         for node in before:
             order_id = self.linearize(node, order_id)
 
@@ -234,7 +234,7 @@ class Order():
         order_id += 1
 
         # treat nodes after
-        after = self.sort_step(after, 'after')
+        after = self.sort_stepV2(after, 'after')
         for node in after:
             order_id = self.linearize(node, order_id)
 
@@ -321,7 +321,6 @@ class Order():
             if i1 == len(group1):
                 result.append(group2[i2])
                 i2 += 1
-                del group2[0]
             elif i2 == len(group2):
                 result.append(group1[i1])
                 i1 += 1
