@@ -20,33 +20,33 @@ import itertools
 
 import nltk
 from nltk.classify import MaxentClassifier, accuracy
-nltk.config_megam("megam-64.opt")
+nltk.config_megam("./megam-64.opt")
 
-class ClassifierTraining(object):
+class ClassifierTraining():
     def __init__(self, ftrain, fdev, language):
-        print language
-        print 'PARSING'
+        print(language)
+        print('PARSING')
         trainset = json.load(open(ftrain))
         devset = json.load(open(fdev))
 
-        print 'EXTRACTING'
+        print('EXTRACTING')
         self.train_c1_features, self.train_c2_features = self.extract_features(trainset)
         self.dev_c1_features, self.dev_c2_features = self.extract_features(devset)
 
-        print 'TRAINING'
+        print('TRAINING')
         self.train_c1_features = map(lambda x: (x['features'], x['class']), self.train_c1_features)
         self.clf_step1 = MaxentClassifier.train(self.train_c1_features, 'megam', trace=0, max_iter=1000)
 
         self.train_c2_features = map(lambda x: (x['features'], x['class']), self.train_c2_features)
         self.clf_sort_step = MaxentClassifier.train(self.train_c2_features, 'megam', trace=0, max_iter=1000)
 
-        print 'DUMPING'
+        print('DUMPING')
         if not os.path.exists('data/models'):
             os.mkdir('data/models')
         p.dump(self.clf_step1, open('data/models/' + language + '_clf_step1.cPickle', 'w'))
         p.dump(self.clf_sort_step, open('data/models/' + language + '_clf_step2.cPickle', 'w'))
 
-        print 'EVALUATING'
+        print('EVALUATING')
         self.evaluate()
 
     def extract_features(self, lngset):
@@ -176,14 +176,14 @@ class ClassifierTraining(object):
 
     def evaluate(self):
         dev_c1_features = map(lambda x: (x['features'], x['class']), self.dev_c1_features)
-        print language
-        print 'One-step: ', accuracy(self.clf_step1, dev_c1_features)
+        print(language)
+        print('One-step: ', accuracy(self.clf_step1, dev_c1_features))
 
         dev_c2_features = map(lambda x: (x['features'], x['class']), self.dev_c2_features)
-        print 'Two-step: ', accuracy(self.clf_sort_step, dev_c2_features)
-        print 20 * '-'
+        print('Two-step: ', accuracy(self.clf_sort_step, dev_c2_features))
+        print(20 * '-')
 
-class Order(object):
+class Order():
     def __init__(self, clf_step1, clf_sort_step):
         self.clf_step1 = p.load(open(clf_step1))
         self.clf_sort_step = p.load(open(clf_sort_step))
@@ -225,7 +225,7 @@ class Order(object):
                 after.append(node)
 
         # treat nodes before
-        before = self.sort_step(before, 'before')
+        before = self.sort_stepV2(before, 'before')
         for node in before:
             order_id = self.linearize(node, order_id)
 
@@ -234,11 +234,12 @@ class Order(object):
         order_id += 1
 
         # treat nodes after
-        after = self.sort_step(after, 'after')
+        after = self.sort_stepV2(after, 'after')
         for node in after:
             order_id = self.linearize(node, order_id)
 
         return order_id
+
 
     def sort_step(self, nodes, position):
         if len(nodes) <= 1:
@@ -305,26 +306,70 @@ class Order(object):
                 del group2[0]
         return result
 
-def count_features(path, language):
-    features = []
+    # Mergesort algorithm fixed
+    def sort_stepV2(self, nodes, position):
+        if len(nodes) <= 1:
+            return nodes
 
-    set_ = json.load(open(path))
+        half = len(nodes) / 2
+        group1 = self.sort_step(nodes[:half], position)
+        group2 = self.sort_step(nodes[half:], position)
 
-    for inst in set_:
-        tree = inst['tree']
-        # text = inst['text']['text']
+        result = []
+        i1, i2 = 0, 0
+        while i1 < len(group1) or i2 < len(group2):
+            if i1 == len(group1):
+                result.append(group2[i2])
+                i2 += 1
+            elif i2 == len(group2):
+                result.append(group1[i1])
+                i1 += 1
+            else:
+                node1, node2 = group1[i1], group2[i2]
+                head = self.nodes[node1]['head']
 
-        nodes = tree['nodes']
-        for node in nodes:
-            features.extend(nodes[node]['feats'].keys())
+                features = {
+                    'head_lemma': self.nodes[head]['lemma'],
+                    'head_deps': self.nodes[head]['deps'],
+                    'head_upos': self.nodes[head]['upos'],
+                    'lemma1': self.nodes[node1]['lemma'],
+                    'deps1': self.nodes[node1]['deps'],
+                    'upos1': self.nodes[node1]['upos'],
+                    'lemma2': self.nodes[node2]['lemma'],
+                    'deps2': self.nodes[node2]['deps'],
+                    'upos2': self.nodes[node2]['upos'],
+                    'position':position
+                }
+                prob_dist = self.clf_sort_step.prob_classify(features)
+                labels = {
+                    'before': prob_dist.prob('before'),
+                    'after': prob_dist.prob('after')
+                }
 
-    features = set(features)
-    print 10 * '-'
-    print language
-    print len(features)
-    print features
-    print 10 * '-'
-    return features
+                features = {
+                    'head_lemma': self.nodes[head]['lemma'],
+                    'head_deps': self.nodes[head]['deps'],
+                    'head_upos': self.nodes[head]['upos'],
+                    'lemma1': self.nodes[node2]['lemma'],
+                    'deps1': self.nodes[node2]['deps'],
+                    'upos1': self.nodes[node2]['upos'],
+                    'lemma2': self.nodes[node1]['lemma'],
+                    'deps2': self.nodes[node1]['deps'],
+                    'upos2': self.nodes[node1]['upos'],
+                    'position':position
+                }
+                prob_dist = self.clf_sort_step.prob_classify(features)
+                labels['before'] *= prob_dist.prob('after')
+                labels['after'] *= prob_dist.prob('before')
+
+                label = sorted(labels.keys(), key=lambda y: labels[y], reverse=True)[0]
+                if label == 'before':
+                    result.append(node1)
+                    i1 += 1
+                else:
+                    result.append(node2)
+                    i2 += 1
+        return result
 
 if __name__ == '__main__':
     train_path = 'data/json/train'
@@ -333,19 +378,3 @@ if __name__ == '__main__':
     for fname in os.listdir(train_path):
         language = fname.replace('.json', '')
         ClassifierTraining(os.path.join(train_path, fname), os.path.join(dev_path, fname), language)
-
-    # set_ = set()
-    # for fname in os.listdir(path):
-    #     language = fname.replace('.json', '')
-    #
-    #     r = count_features(os.path.join(path, fname), language)
-    #     if len(list(set_)) == 0:
-    #         set_ = r
-    #     else:
-    #         set_ = set_.intersection(r)
-    #
-    # print 10 * '-'
-    # print 'general'
-    # print len(set_)
-    # print set_
-    # print 10 * '-'
