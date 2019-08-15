@@ -96,7 +96,7 @@ def parse(dep_path, snt_path):
         if fname != '.DS_Store':
             lng = fname.split('-')[0].split('_')[0]
             if lng in ['en', 'es', 'fr', 'it', 'nl', 'pt']:
-                print fname, lng
+                print(fname, lng)
                 trees_ = parse_dep(os.path.join(dep_path, fname))
                 snt_fname = fname.replace('.conll', '_sentences.txt')
                 texts_ = parse_text(os.path.join(snt_path, snt_fname))

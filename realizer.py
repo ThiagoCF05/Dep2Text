@@ -18,7 +18,8 @@ class Realizer(object):
     def __init__(self, clf_step1, clf_step2, lexicon):
         self.order = Order(clf_step1, clf_step2) #clf_step2_backoff)
 
-        self.lexicon = json.load(open(lexicon))
+        # self.lexicon = json.load(open(lexicon))
+        self.lexicon = {}
 
 
     def realize(self, root):
@@ -48,7 +49,11 @@ class Realizer(object):
 
 
     def linearize(self):
-        nodes = sorted(self.nodes, key=lambda node:self.nodes[node]['pred_order_id'])
+        nodes = [node for node in self.nodes if '_' not in self.nodes[node]['head']]
+        # print(10 * '-')
+        # for node in nodes:
+        #     print(self.nodes[node])
+        nodes = sorted(nodes, key=lambda node: int(self.nodes[node]['pred_order_id']))
 
         text = map(lambda node: self.nodes[node]['pred_realization'], nodes)
         text = ' '.join(text)
@@ -77,7 +82,8 @@ class Realizer(object):
             self.remove_punctuation()
 
         for node in self.nodes:
-            self.realize(node)
+            self.nodes[node]['pred_realization'] = self.nodes[node]['lemma']
+            # self.realize(node)
 
         text = self.linearize()
         if remove_punt:
@@ -90,6 +96,11 @@ class Realizer(object):
         texts, realizations = [], []
         for instance in instances:
             tree, sent_id, text = instance['tree'], instance['sent_id'], instance['text']
+
+            nodes = [node for node in tree['nodes'] if '_' not in tree['nodes'][node]['head']]
+            nodes = sorted(nodes, key=lambda node: int(tree['nodes'][node]['id']))
+            text = map(lambda node: tree['nodes'][node]['realization'], nodes)
+            text = ' '.join(text)
 
             tree, pred_text = self.run(tree)
 

@@ -35,12 +35,12 @@ def save_mt_data(texts, fde, fen, fsent):
     fen.close()
 
 if __name__ == '__main__':
-    TRAIN_PATH = 'data/json/train'
-    DEV_PATH = 'data/json/dev'
-    TEST_PATH = 'data/json/test'
-    MODEL_PATH = 'data/models'
-    LEXICON_PATH = 'data/lexicon/train'
-    MT_PATH = 'data/mt'
+    TRAIN_PATH = 'data2019/json/train'
+    DEV_PATH = 'data2019/json/dev'
+    TEST_PATH = 'data2019/json/test'
+    MODEL_PATH = 'data2019/models'
+    LEXICON_PATH = 'data2019/lexicon/train'
+    MT_PATH = 'data2019/mt'
 
     if not os.path.exists(MT_PATH):
         os.mkdir(MT_PATH)
@@ -71,8 +71,8 @@ if __name__ == '__main__':
         fsent_id = os.path.join(LNG_PATH, 'dev.sent_id')
         save_mt_data(texts, fde, fen, fsent_id)
 
-        testinstances = json.load(open(os.path.join(TEST_PATH, fname)))
-        texts, realizations = realizer.batch_run(testinstances)
-        fde, fen = os.path.join(LNG_PATH, 'test.de'), os.path.join(LNG_PATH, 'test.en')
-        fsent_id = os.path.join(LNG_PATH, 'test.sent_id')
-        save_mt_data(texts, fde, fen, fsent_id)
+        # testinstances = json.load(open(os.path.join(TEST_PATH, fname)))
+        # texts, realizations = realizer.batch_run(testinstances)
+        # fde, fen = os.path.join(LNG_PATH, 'test.de'), os.path.join(LNG_PATH, 'test.en')
+        # fsent_id = os.path.join(LNG_PATH, 'test.sent_id')
+        # save_mt_data(texts, fde, fen, fsent_id)
