@@ -13,15 +13,19 @@ import os
 import json
 
 
-def parse_dep(snt):
+def parse_dep(snt, testset=False):
     root, nodes, edges = 1, {}, {}
 
     for elem in snt:
         elem = elem.split('\t')
 
         id = elem[0]
-        word = elem[1]
-        lemma = elem[2]
+        if testset:
+            lemma = elem[1]
+            word = '_'
+        else:
+            word = elem[1]
+            lemma = elem[2]
         upos = elem[3]
         xpos = elem[4]
         feats = {}
@@ -61,7 +65,7 @@ def parse_dep(snt):
     return tree
 
 
-def parse(path, lngs):
+def parse(path, lngs, testset=False):
     languages = {}
 
     for fname in [w for w in os.listdir(path) if not str(w).startswith('.')]:
@@ -75,7 +79,7 @@ def parse(path, lngs):
                 doc = f.read()
             doc = doc.split('\n\n')
 
-            for inst in doc[:-1]:
+            for j, inst in enumerate(doc[:-1]):
                 attrs = {}
                 rows = inst.split('\n')
                 try:
@@ -87,7 +91,9 @@ def parse(path, lngs):
                             except:
                                 pass
                         else:
-                            attrs['tree'] = parse_dep(rows[i:])
+                            attrs['tree'] = parse_dep(rows[i:], testset=testset)
+                            attrs['fname'] = fname
+                            attrs['id'] = j+1
                             languages[lng].append(attrs)
                             break
                 except:
@@ -101,32 +107,32 @@ if __name__ == '__main__':
     PATH = 'data2019/UD_train-dev'
     TRAIN_PATH = os.path.join(PATH, 'UD-train')
     DEV_PATH = os.path.join(PATH, 'UD-dev')
-    # TEST_DEP_PATH = os.path.join(DEP_PATH, 'test')
+    TEST_PATH = os.path.join('data2019', 'SR19_test', 'T1-test')
 
     JSON_PATH = 'data2019/json'
     if not os.path.exists(JSON_PATH):
         os.mkdir(JSON_PATH)
 
-    trainset = parse(TRAIN_PATH, ['ar', 'en', 'es', 'fr', 'hi', 'id', 'ja', 'ko', 'pt', 'ru', 'zh'])
-    TRAIN_SAVE_PATH = 'data2019/json/train'
-    if not os.path.exists(TRAIN_SAVE_PATH):
-        os.mkdir(TRAIN_SAVE_PATH)
-    for lng, languageset in trainset.items():
-        fname = os.path.join(TRAIN_SAVE_PATH, lng + '.json')
-        to_json(fname, languageset)
-
-    devset = parse(DEV_PATH, ['ar', 'en', 'es', 'fr', 'hi', 'id', 'ja', 'ko', 'pt', 'ru', 'zh'])
-    DEV_SAVE_PATH = 'data2019/json/dev'
-    if not os.path.exists(DEV_SAVE_PATH):
-        os.mkdir(DEV_SAVE_PATH)
-    for lng, languageset in devset.items():
-        fname = os.path.join(DEV_SAVE_PATH, lng + '.json')
-        to_json(fname, languageset)
-
-    # testset = parse(TEST_DEP_PATH, TEST_SNT_PATH)
-    # TEST_SAVE_PATH = 'data2019/json/test'
-    # if not os.path.exists(TEST_SAVE_PATH):
-    #     os.mkdir(TEST_SAVE_PATH)
-    # for lng, languageset in testset.iteritems():
-    #     fname = os.path.join(TEST_SAVE_PATH, lng + '.json')
+    # trainset = parse(TRAIN_PATH, ['ar', 'en', 'es', 'fr', 'hi', 'id', 'ja', 'ko', 'pt', 'ru', 'zh'])
+    # TRAIN_SAVE_PATH = 'data2019/json/train'
+    # if not os.path.exists(TRAIN_SAVE_PATH):
+    #     os.mkdir(TRAIN_SAVE_PATH)
+    # for lng, languageset in trainset.items():
+    #     fname = os.path.join(TRAIN_SAVE_PATH, lng + '.json')
     #     to_json(fname, languageset)
+    #
+    # devset = parse(DEV_PATH, ['ar', 'en', 'es', 'fr', 'hi', 'id', 'ja', 'ko', 'pt', 'ru', 'zh'])
+    # DEV_SAVE_PATH = 'data2019/json/dev'
+    # if not os.path.exists(DEV_SAVE_PATH):
+    #     os.mkdir(DEV_SAVE_PATH)
+    # for lng, languageset in devset.items():
+    #     fname = os.path.join(DEV_SAVE_PATH, lng + '.json')
+    #     to_json(fname, languageset)
+
+    testset = parse(TEST_PATH, ['ar', 'en', 'es', 'fr', 'hi', 'id', 'ja', 'ko', 'pt', 'ru', 'zh'], testset=True)
+    TEST_SAVE_PATH = 'data2019/json/test'
+    if not os.path.exists(TEST_SAVE_PATH):
+        os.mkdir(TEST_SAVE_PATH)
+    for lng, languageset in testset.items():
+        fname = os.path.join(TEST_SAVE_PATH, lng + '.json')
+        to_json(fname, languageset)
