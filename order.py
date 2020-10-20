@@ -41,10 +41,10 @@ class ClassifierTraining():
         self.clf_sort_step = MaxentClassifier.train(self.train_c2_features, 'megam', trace=0, max_iter=1000)
 
         print('DUMPING')
-        if not os.path.exists('data2019/models'):
-            os.mkdir('data2019/models')
-        p.dump(self.clf_step1, open('data2019/models/' + language + '_clf_step1.cPickle', 'w'))
-        p.dump(self.clf_sort_step, open('data2019/models/' + language + '_clf_step2.cPickle', 'w'))
+        if not os.path.exists('data2020/models'):
+            os.mkdir('data2020/models')
+        p.dump(self.clf_step1, open('data2020/models/' + language + '_clf_step1.cPickle', 'w'))
+        p.dump(self.clf_sort_step, open('data2020/models/' + language + '_clf_step2.cPickle', 'w'))
 
         print('EVALUATING')
         self.evaluate()
@@ -372,8 +372,8 @@ class Order():
         return result
 
 if __name__ == '__main__':
-    train_path = 'data2019/json/train'
-    dev_path = 'data2019/json/dev'
+    train_path = 'data2020/json/train'
+    dev_path = 'data2020/json/dev'
 
     for fname in os.listdir(train_path):
         language = fname.replace('.json', '')

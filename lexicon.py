@@ -46,8 +46,8 @@ class Lexicon:
             p.dump(lexicon, open(out_path, 'wb'))
 
 if __name__ == '__main__':
-    in_path = 'data2019/json/train'
-    out_path = 'data2019/lexicon'
+    in_path = 'data2020/json/train'
+    out_path = 'data2020/lexicon'
 
     lex = Lexicon(path=in_path, out_path=out_path)
     lex.process()

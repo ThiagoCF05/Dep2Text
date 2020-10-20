@@ -343,8 +343,60 @@ def realize(text):
     return text
 
 if __name__ == '__main__':
-    fread = '/home/tcastrof/challenge/data/mt/pt/pt_out.txt'
-    fout = '/home/tcastrof/challenge/data/mt/pt/pt_outN.txt'
+    fread = 'data2019/tok/pt_bosque-Pred-Stanford.conllu'
+    fout = 'data2019/tok/pt_bosque-Pred-Stanford.conllu'
+
+    with open(fread) as f:
+        doc = f.read().decode('utf-8')
+    doc = realize(doc)
+
+    with open(fout, 'w') as f:
+        f.write(doc.encode('utf-8'))
+        
+    fread = 'data2019/detok/pt_bosque-Pred-Stanford.conllu'
+    fout = 'data2019/detok/pt_bosque-Pred-Stanford.conllu'
+
+    with open(fread) as f:
+        doc = f.read().decode('utf-8')
+    doc = realize(doc)
+
+    with open(fout, 'w') as f:
+        f.write(doc.encode('utf-8'))
+        
+    ###########################################
+    fread = 'data2019/tok/pt_bosque-ud-test.conllu'
+    fout = 'data2019/tok/pt_bosque-ud-test.conllu'
+
+    with open(fread) as f:
+        doc = f.read().decode('utf-8')
+    doc = realize(doc)
+
+    with open(fout, 'w') as f:
+        f.write(doc.encode('utf-8'))
+        
+    fread = 'data2019/detok/pt_bosque-ud-test.conllu'
+    fout = 'data2019/detok/pt_bosque-ud-test.conllu'
+
+    with open(fread) as f:
+        doc = f.read().decode('utf-8')
+    doc = realize(doc)
+
+    with open(fout, 'w') as f:
+        f.write(doc.encode('utf-8'))
+        
+    ###########################################
+    fread = 'data2019/tok/pt_gsd-ud-test.conllu'
+    fout = 'data2019/tok/pt_gsd-ud-test.conllu'
+
+    with open(fread) as f:
+        doc = f.read().decode('utf-8')
+    doc = realize(doc)
+
+    with open(fout, 'w') as f:
+        f.write(doc.encode('utf-8'))
+        
+    fread = 'data2019/detok/pt_gsd-ud-test.conllu'
+    fout = 'data2019/detok/pt_gsd-ud-test.conllu'
 
     with open(fread) as f:
         doc = f.read().decode('utf-8')
